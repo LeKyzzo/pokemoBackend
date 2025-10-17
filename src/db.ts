@@ -25,6 +25,14 @@ const pool = new Pool(
 		}
 );
 
+pool.on('connect', async (client) => {
+	try {
+		await client.query('SET search_path TO poke, public');
+	} catch (error) {
+		console.error('❌ Impossible de définir le search_path sur la connexion PostgreSQL.', error);
+	}
+});
+
 export const query = <T extends QueryResultRow = QueryResultRow>(
 	textOrConfig: string | QueryConfig,
 	values?: unknown[]

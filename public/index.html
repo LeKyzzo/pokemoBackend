@@ -168,16 +168,16 @@
       { id: 'snapshot', label: 'GET /api/database', description: 'Snapshot complet de la base', method: 'GET', path: '/api/database' },
       { id: 'trainers-list', label: 'GET /api/trainers', description: 'Lister tous les dresseurs', method: 'GET', path: '/api/trainers' },
       { id: 'trainer-get', label: 'GET /api/trainers/1', description: 'Afficher un dresseur', method: 'GET', path: '/api/trainers/1' },
-      { id: 'trainer-create', label: 'POST /api/trainers', description: 'Créer un dresseur', method: 'POST', path: '/api/trainers', body: { name: 'Ondine' } },
+      { id: 'trainer-create', label: 'POST /api/trainers', description: 'Créer un dresseur', method: 'POST', path: '/api/trainers', body: () => ({ name: `Dresseur_${Date.now().toString(36)}` }) },
       { id: 'trainer-heal', label: 'POST /api/trainers/1/heal', description: 'Soigner équipe', method: 'POST', path: '/api/trainers/1/heal' },
-      { id: 'trainer-add-pokemon', label: 'POST /api/trainers/1/add-pokemon', description: 'Ajouter un Pokémon à un dresseur', method: 'POST', path: '/api/trainers/1/add-pokemon', body: { name: 'Pikachu', maxLife: 120 } },
-      { id: 'pokemons-create', label: 'POST /api/pokemons', description: 'Créer un Pokémon', method: 'POST', path: '/api/pokemons', body: { name: 'Salamèche', maxLife: 110, trainerId: 1 } },
+      { id: 'trainer-add-pokemon', label: 'POST /api/trainers/1/add-pokemon', description: 'Ajouter un Pokémon à un dresseur', method: 'POST', path: '/api/trainers/1/add-pokemon', body: () => ({ name: `Testchu_${Date.now().toString(36)}`, maxLife: 120 }) },
+      { id: 'pokemons-create', label: 'POST /api/pokemons', description: 'Créer un Pokémon', method: 'POST', path: '/api/pokemons', body: () => ({ name: `Capture_${Date.now().toString(36)}`, maxLife: 110, trainerId: 1 }) },
       { id: 'pokemon-get', label: 'GET /api/pokemons/1', description: 'Afficher un Pokémon', method: 'GET', path: '/api/pokemons/1' },
       { id: 'pokemon-by-trainer', label: 'GET /api/pokemons/trainer/1', description: 'Lister les Pokémons d’un dresseur', method: 'GET', path: '/api/pokemons/trainer/1' },
       { id: 'pokemon-heal', label: 'POST /api/pokemons/1/heal', description: 'Soigner un Pokémon', method: 'POST', path: '/api/pokemons/1/heal' },
       { id: 'pokemon-add-attack', label: 'POST /api/pokemons/1/attacks', description: 'Associer une attaque', method: 'POST', path: '/api/pokemons/1/attacks', body: { attackId: 1 } },
       { id: 'attacks-list', label: 'GET /api/attacks', description: 'Lister toutes les attaques', method: 'GET', path: '/api/attacks' },
-      { id: 'attack-create', label: 'POST /api/attacks', description: 'Créer une attaque', method: 'POST', path: '/api/attacks', body: { name: 'Tonnerre', damage: 25, usageLimit: 10 } },
+      { id: 'attack-create', label: 'POST /api/attacks', description: 'Créer une attaque', method: 'POST', path: '/api/attacks', body: () => ({ name: `Attack_${Date.now().toString(36)}`, damage: 25, usageLimit: 10 }) },
       { id: 'battle-random', label: 'POST /api/battles/random', description: 'Duel aléatoire', method: 'POST', path: '/api/battles/random', body: { trainerAId: 1, trainerBId: 2 } },
       { id: 'battle-deterministic', label: 'POST /api/battles/deterministic', description: 'Duel déterministe', method: 'POST', path: '/api/battles/deterministic', body: { trainerAId: 1, trainerBId: 2 } },
       { id: 'arena-random', label: 'POST /api/battles/arena/random', description: 'Arène aléatoire (100 combats)', method: 'POST', path: '/api/battles/arena/random', body: { trainerAId: 1, trainerBId: 2, battlesCount: 100 } },
@@ -263,25 +263,45 @@
       }
     };
 
+    const resolveBody = (spec) => {
+      if (typeof spec === 'function') {
+        try {
+          return spec();
+        } catch (error) {
+          console.error('❌ Erreur lors de la génération du corps', error);
+          return null;
+        }
+      }
+      if (spec === undefined) {
+        return null;
+      }
+      return JSON.parse(JSON.stringify(spec));
+    };
+
     const sendRequest = async (endpoint) => {
       const url = buildUrl(endpoint.path);
+      const bodyPayload = resolveBody(endpoint.body);
       const requestData = {
         method: endpoint.method,
         url,
-        body: endpoint.body ?? null
+        body: bodyPayload
       };
 
       displayRequest(requestData);
       console.log('➡️ Requête envoyée', requestData);
+
+      responseStatus.textContent = 'Envoi en cours…';
+      responseStatus.classList.remove('error', 'success');
+      responseOutput.textContent = '';
 
       const init = {
         method: endpoint.method,
         headers: { Accept: 'application/json' }
       };
 
-      if (endpoint.body !== undefined) {
+      if (bodyPayload !== null) {
         init.headers['Content-Type'] = 'application/json';
-        init.body = JSON.stringify(endpoint.body);
+        init.body = JSON.stringify(bodyPayload);
       }
 
       const startedAt = performance.now();
@@ -311,8 +331,8 @@
 
         console.log('⬅️ Réponse reçue', payload);
 
-        const statusLine = `${response.status} ${response.statusText || ''} · ${duration} ms`;
-        displayResponse(statusLine.trim(), payload.body, response.status >= 400);
+  const statusLine = `${response.status} ${response.statusText || ''} · ${duration} ms`;
+  displayResponse(statusLine.trim(), payload.body ?? '—', response.status >= 400);
       } catch (error) {
         const duration = Math.round(performance.now() - startedAt);
         const message = error instanceof Error ? error.message : String(error);
