@@ -3,363 +3,326 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulateur Pokémon minimal</title>
+  <title>Console API Pokémon (mini)</title>
   <style>
     :root {
-      color-scheme: light dark;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --bg: #f4f4f6;
-      --fg: #1a1a2b;
-      --card: #ffffff;
-      --accent: #ffcb05;
-      --accent-dark: #0a285f;
-      --border: rgba(10, 40, 95, 0.15);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #101421;
-        --fg: #f4f5ff;
-        --card: #181c2c;
-        --border: rgba(255, 255, 255, 0.1);
-      }
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      color-scheme: light;
     }
 
     body {
       margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--fg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem 3rem;
+      background: #f5f7fb;
+      color: #1f2937;
     }
 
-    .app {
-      width: min(760px, 100%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 1.2rem;
-      padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
-      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.18);
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 3rem;
     }
 
     h1 {
-      margin: 0 0 1rem;
-      font-size: clamp(1.75rem, 3vw, 2.4rem);
+      margin-bottom: 0.35rem;
+      font-size: clamp(1.8rem, 4vw, 2.3rem);
     }
 
-    p.subtitle {
-      margin: 0 0 2.5rem;
-      color: rgba(10, 40, 95, 0.75);
-      line-height: 1.6;
-    }
-
-    form {
-      display: grid;
-      gap: 1.25rem;
-    }
-
-    label {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      font-weight: 600;
-    }
-
-    input,
-    select {
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 0.65rem 0.8rem;
-      font-size: 1rem;
-      background: rgba(255, 255, 255, 0.9);
-      color: inherit;
-    }
-
-    button {
-      appearance: none;
-      border: none;
-      border-radius: 999px;
-      padding: 0.8rem 1.5rem;
-      font-weight: 700;
-      font-size: 1rem;
-      background: linear-gradient(135deg, var(--accent), #f6a623);
-      color: var(--accent-dark);
-      cursor: pointer;
-      box-shadow: 0 16px 32px rgba(255, 203, 5, 0.28);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    }
-
-    button:disabled {
-      cursor: progress;
-      filter: grayscale(0.3);
-      opacity: 0.85;
-      box-shadow: none;
-    }
-
-    button:not(:disabled):hover {
-      transform: translateY(-1px);
-      box-shadow: 0 22px 38px rgba(255, 203, 5, 0.35);
-    }
-
-    .results {
-      margin-top: 2.5rem;
-      border-top: 1px dashed rgba(10, 40, 95, 0.18);
-      padding-top: 2rem;
-    }
-
-    .panel {
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      padding: 1.25rem;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(16px);
-    }
-
-    .status {
+    p.description {
+      margin-top: 0;
       margin-bottom: 1.2rem;
-      font-weight: 600;
+      color: #4b5563;
+    }
+
+    label.base-url {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    label.base-url input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.55rem;
+      font: inherit;
+      min-width: 260px;
+    }
+
+    section {
+      margin-top: 2rem;
+    }
+
+    section h2 {
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .preset-list {
+      display: grid;
+      gap: 0.6rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    button.preset {
+      appearance: none;
+      border: 1px solid #d1d5db;
+      border-radius: 0.65rem;
+      padding: 0.75rem 0.9rem;
+      text-align: left;
+      font: inherit;
+      background: #ffffff;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    button.preset strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+    }
+
+    button.preset span {
+      display: block;
+      font-size: 0.82rem;
+      color: #6b7280;
+    }
+
+    button.preset.active {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      transform: translateY(-1px);
+    }
+
+    button.preset:hover {
+      border-color: #2563eb;
     }
 
     pre {
-      margin: 0;
-      background: #0f172a;
-      color: #f8fafc;
+      background: #111827;
+      color: #e5e7eb;
       padding: 1rem;
-      border-radius: 0.8rem;
-      max-height: 260px;
-      overflow: auto;
-      font-size: 0.92rem;
-      line-height: 1.45;
+      border-radius: 0.65rem;
+      margin: 0;
+      min-height: 120px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", "Fira Code", "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
       white-space: pre-wrap;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      font-size: 0.95rem;
+    .status {
+      margin-bottom: 0.65rem;
+      font-weight: 600;
+      color: #1f2937;
     }
 
-    th,
-    td {
-      border-bottom: 1px solid rgba(10, 40, 95, 0.12);
-      padding: 0.6rem 0.7rem;
-      text-align: left;
+    .status.error {
+      color: #dc2626;
     }
 
-    th {
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-      color: rgba(10, 40, 95, 0.65);
+    .status.success {
+      color: #047857;
     }
 
-    .hidden {
-      display: none;
+    .hint {
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: #6b7280;
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <h1>Simulateur Pokémon</h1>
-    <p class="subtitle">Choisissez deux dresseurs, sélectionnez un mode de combat puis laissez l'API REST faire le reste. Les résultats s'affichent instantanément.</p>
+  <main>
+    <header>
+      <h1>Console API Pokémon</h1>
+      <p class="description">Cliquez sur une pré-requête pour l'envoyer tout de suite. On affiche la requête et la réponse ci-dessous et tout est aussi loggé dans la console du navigateur.</p>
+      <label class="base-url">
+        URL de base
+        <input type="text" id="base-url" spellcheck="false" />
+      </label>
+    </header>
 
-    <form id="battle-form">
-      <label>
-        Identifiant du dresseur A
-        <input type="number" name="trainerAId" min="1" step="1" required placeholder="1" />
-      </label>
-      <label>
-        Identifiant du dresseur B
-        <input type="number" name="trainerBId" min="1" step="1" required placeholder="2" />
-      </label>
-      <label>
-        Mode de combat
-        <select name="mode" required>
-          <option value="random-duel">Duel aléatoire</option>
-          <option value="deterministic-duel">Duel déterministe</option>
-          <option value="arena-random">Arène aléatoire (100 combats)</option>
-          <option value="arena-deterministic">Arène déterministe (limite 100)</option>
-        </select>
-      </label>
-      <label id="battles-count-wrapper" class="hidden">
-        Nombre de combats pour l'arène
-        <input type="number" name="battlesCount" min="1" max="200" step="1" value="100" />
-      </label>
-      <button type="submit">Lancer</button>
-    </form>
+    <section>
+      <h2>Pré-requêtes</h2>
+      <div class="preset-list" id="preset-list"></div>
+      <p class="hint">Besoin de personnaliser ? Modifiez directement le tableau <code>endpoints</code> dans le script.</p>
+    </section>
 
-    <section class="results hidden" id="results">
-      <div class="panel">
-        <div class="status" id="status"></div>
-        <pre id="log">Aucun combat lancé pour l'instant.</pre>
-        <div id="scoreboard-wrapper" class="hidden"></div>
-      </div>
+    <section>
+      <h2>Dernière requête envoyée</h2>
+      <pre id="request-output">{ "status": "En attente d'une requête" }</pre>
+    </section>
+
+    <section>
+      <h2>Dernière réponse reçue</h2>
+      <div class="status" id="response-status">En attente…</div>
+      <pre id="response-output"></pre>
     </section>
   </main>
 
   <script>
-    const ROUTES = {
-      'random-duel': '/api/battles/random',
-      'deterministic-duel': '/api/battles/deterministic',
-      'arena-random': '/api/battles/arena/random',
-      'arena-deterministic': '/api/battles/arena/deterministic'
+    const endpoints = [
+      { id: 'health', label: 'GET /api/health', description: 'Ping de santé rapide', method: 'GET', path: '/api/health' },
+      { id: 'snapshot', label: 'GET /api/database', description: 'Snapshot complet de la base', method: 'GET', path: '/api/database' },
+      { id: 'trainers-list', label: 'GET /api/trainers', description: 'Lister tous les dresseurs', method: 'GET', path: '/api/trainers' },
+      { id: 'trainer-get', label: 'GET /api/trainers/1', description: 'Afficher un dresseur', method: 'GET', path: '/api/trainers/1' },
+      { id: 'trainer-create', label: 'POST /api/trainers', description: 'Créer un dresseur', method: 'POST', path: '/api/trainers', body: { name: 'Ondine' } },
+      { id: 'trainer-heal', label: 'POST /api/trainers/1/heal', description: 'Soigner équipe', method: 'POST', path: '/api/trainers/1/heal' },
+      { id: 'trainer-add-pokemon', label: 'POST /api/trainers/1/add-pokemon', description: 'Ajouter un Pokémon à un dresseur', method: 'POST', path: '/api/trainers/1/add-pokemon', body: { name: 'Pikachu', maxLife: 120 } },
+      { id: 'pokemons-create', label: 'POST /api/pokemons', description: 'Créer un Pokémon', method: 'POST', path: '/api/pokemons', body: { name: 'Salamèche', maxLife: 110, trainerId: 1 } },
+      { id: 'pokemon-get', label: 'GET /api/pokemons/1', description: 'Afficher un Pokémon', method: 'GET', path: '/api/pokemons/1' },
+      { id: 'pokemon-by-trainer', label: 'GET /api/pokemons/trainer/1', description: 'Lister les Pokémons d’un dresseur', method: 'GET', path: '/api/pokemons/trainer/1' },
+      { id: 'pokemon-heal', label: 'POST /api/pokemons/1/heal', description: 'Soigner un Pokémon', method: 'POST', path: '/api/pokemons/1/heal' },
+      { id: 'pokemon-add-attack', label: 'POST /api/pokemons/1/attacks', description: 'Associer une attaque', method: 'POST', path: '/api/pokemons/1/attacks', body: { attackId: 1 } },
+      { id: 'attacks-list', label: 'GET /api/attacks', description: 'Lister toutes les attaques', method: 'GET', path: '/api/attacks' },
+      { id: 'attack-create', label: 'POST /api/attacks', description: 'Créer une attaque', method: 'POST', path: '/api/attacks', body: { name: 'Tonnerre', damage: 25, usageLimit: 10 } },
+      { id: 'battle-random', label: 'POST /api/battles/random', description: 'Duel aléatoire', method: 'POST', path: '/api/battles/random', body: { trainerAId: 1, trainerBId: 2 } },
+      { id: 'battle-deterministic', label: 'POST /api/battles/deterministic', description: 'Duel déterministe', method: 'POST', path: '/api/battles/deterministic', body: { trainerAId: 1, trainerBId: 2 } },
+      { id: 'arena-random', label: 'POST /api/battles/arena/random', description: 'Arène aléatoire (100 combats)', method: 'POST', path: '/api/battles/arena/random', body: { trainerAId: 1, trainerBId: 2, battlesCount: 100 } },
+      { id: 'arena-deterministic', label: 'POST /api/battles/arena/deterministic', description: 'Arène déterministe', method: 'POST', path: '/api/battles/arena/deterministic', body: { trainerAId: 1, trainerBId: 2, battlesCount: 50 } }
+    ];
+
+    const baseUrlInput = document.getElementById('base-url');
+    const presetList = document.getElementById('preset-list');
+    const requestOutput = document.getElementById('request-output');
+    const responseOutput = document.getElementById('response-output');
+    const responseStatus = document.getElementById('response-status');
+
+    let activePresetId = null;
+
+    const normalizeBase = (value) => {
+      if (!value) {
+        return window.location.origin;
+      }
+      const trimmed = value.trim();
+      if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed.replace(/\/$/, '');
+      }
+      return `http://${trimmed.replace(/\/$/, '')}`;
     };
 
-    const form = document.getElementById('battle-form');
-    const statusEl = document.getElementById('status');
-    const logEl = document.getElementById('log');
-    const resultsSection = document.getElementById('results');
-    const scoreboardWrapper = document.getElementById('scoreboard-wrapper');
-    const submitButton = form.querySelector('button[type="submit"]');
-    const battlesCountWrapper = document.getElementById('battles-count-wrapper');
-
-    const formatDuel = (duel) => {
-      const lines = [];
-      if (!duel) {
-        return 'Aucun résultat.';
+    const buildUrl = (path) => {
+      if (/^https?:\/\//i.test(path)) {
+        return path;
       }
-      lines.push(`Mode : ${duel.mode}`);
-      lines.push(`Rounds : ${duel.totalRounds}`);
-      lines.push(`A : ${duel.trainerA.name} (${duel.trainerA.pokemon})`);
-      lines.push(`B : ${duel.trainerB.name} (${duel.trainerB.pokemon})`);
-      if (duel.winner) {
-        lines.push(`Vainqueur : ${duel.winner.trainerName} (${duel.winner.pokemonName})`);
-      } else {
-        lines.push('Vainqueur : égalité');
-      }
-      lines.push('---');
-      duel.turns.forEach((turn) => {
-        if (turn.action === 'attack') {
-          lines.push(
-            `Tour ${turn.round} • ${turn.actor.trainerName} (${turn.actor.pokemonName}) utilise ${turn.attackName} → ${turn.damage} dmg | ${turn.target.pokemonName} : ${turn.targetRemainingLife} PV`
-          );
-        } else {
-          lines.push(
-            `Tour ${turn.round} • ${turn.actor.trainerName} (${turn.actor.pokemonName}) ne peut pas attaquer`
-          );
-        }
-      });
-      return lines.join('\n');
+      const base = normalizeBase(baseUrlInput.value);
+      return `${base}${path.startsWith('/') ? path : `/${path}`}`;
     };
 
-    const renderScoreboard = (arena) => {
-      if (!arena || !Array.isArray(arena.scoreboard)) {
-        scoreboardWrapper.classList.add('hidden');
-        scoreboardWrapper.innerHTML = '';
-        return;
-      }
-      scoreboardWrapper.classList.remove('hidden');
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
-      ['Dresseur', 'Victoires', 'Défaites', 'Nuls'].forEach((label) => {
-        const th = document.createElement('th');
-        th.textContent = label;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-      arena.scoreboard.forEach((row) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.trainerName}</td><td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>`;
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-
-      const notes = Array.isArray(arena.notes) && arena.notes.length
-        ? `<ul>${arena.notes.map((note) => `<li>${note}</li>`).join('')}</ul>`
-        : '';
-
-      scoreboardWrapper.innerHTML = `
-        <h3>Statistiques d'arène</h3>
-        <div><strong>Combats joués :</strong> ${arena.totalBattles}</div>
-        ${arena.champion ? `<div><strong>Champion :</strong> ${arena.champion.trainerName}</div>` : '<div><strong>Champion :</strong> égalité</div>'}
-        ${table.outerHTML}
-        ${notes}
-      `;
-    };
-
-    const toggleArenaFields = (mode) => {
-      if (mode.startsWith('arena')) {
-        battlesCountWrapper.classList.remove('hidden');
-      } else {
-        battlesCountWrapper.classList.add('hidden');
-      }
-    };
-
-    form.mode.addEventListener('change', (event) => {
-      toggleArenaFields(event.target.value);
-    });
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const mode = formData.get('mode');
-      const trainerAId = Number(formData.get('trainerAId'));
-      const trainerBId = Number(formData.get('trainerBId'));
-      const battlesCount = Number(formData.get('battlesCount'));
-
-      if (!ROUTES[mode]) {
-        statusEl.textContent = 'Mode de combat inconnu.';
-        resultsSection.classList.remove('hidden');
-        return;
-      }
-
-      submitButton.disabled = true;
-      statusEl.textContent = 'Simulation en cours...';
-      logEl.textContent = '';
-      resultsSection.classList.remove('hidden');
-      scoreboardWrapper.classList.add('hidden');
-      scoreboardWrapper.innerHTML = '';
-
-      try {
-        const payload = { trainerAId, trainerBId };
-        if (mode.startsWith('arena') && Number.isFinite(battlesCount) && battlesCount > 0) {
-          payload.battlesCount = Math.min(Math.floor(battlesCount), 200);
+    const renderPresets = () => {
+      presetList.innerHTML = '';
+      endpoints.forEach((endpoint) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'preset';
+        if (endpoint.id === activePresetId) {
+          button.classList.add('active');
         }
 
-        const response = await fetch(ROUTES[mode], {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const title = document.createElement('strong');
+        title.textContent = endpoint.label;
+        const description = document.createElement('span');
+        description.textContent = endpoint.description;
+
+        button.append(title, description);
+        button.addEventListener('click', () => {
+          activePresetId = endpoint.id;
+          renderPresets();
+          sendRequest(endpoint);
         });
 
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || `Erreur ${response.status}`);
-        }
+        presetList.appendChild(button);
+      });
+    };
 
-        const data = await response.json();
-        if (mode.startsWith('arena')) {
-          const latestBattle = Array.isArray(data.battles) && data.battles.length
-            ? data.battles[data.battles.length - 1]
-            : null;
-          statusEl.textContent = latestBattle && latestBattle.winner
-            ? `Dernier vainqueur : ${latestBattle.winner.trainerName}`
-            : 'Dernier combat : égalité';
-          logEl.textContent = latestBattle ? formatDuel(latestBattle) : 'Pas de duel enregistré.';
-          renderScoreboard(data);
-        } else {
-          statusEl.textContent = data.winner
-            ? `Victoire de ${data.winner.trainerName}`
-            : 'Match nul';
-          logEl.textContent = formatDuel(data);
-        }
-      } catch (error) {
-        statusEl.textContent = error instanceof Error ? error.message : String(error);
-        logEl.textContent = '—';
-      } finally {
-        submitButton.disabled = false;
+    const displayRequest = (data) => {
+      requestOutput.textContent = JSON.stringify(data, null, 2);
+    };
+
+    const displayResponse = (status, body, isError = false) => {
+      responseStatus.textContent = status;
+      responseStatus.classList.toggle('error', isError);
+      responseStatus.classList.toggle('success', !isError);
+
+      if (body === undefined || body === null || body === '') {
+        responseOutput.textContent = '—';
+        return;
       }
-    });
 
-    toggleArenaFields(form.mode.value);
+      if (typeof body === 'string') {
+        responseOutput.textContent = body;
+        return;
+      }
+
+      try {
+        responseOutput.textContent = JSON.stringify(body, null, 2);
+      } catch (_error) {
+        responseOutput.textContent = String(body);
+      }
+    };
+
+    const sendRequest = async (endpoint) => {
+      const url = buildUrl(endpoint.path);
+      const requestData = {
+        method: endpoint.method,
+        url,
+        body: endpoint.body ?? null
+      };
+
+      displayRequest(requestData);
+      console.log('➡️ Requête envoyée', requestData);
+
+      const init = {
+        method: endpoint.method,
+        headers: { Accept: 'application/json' }
+      };
+
+      if (endpoint.body !== undefined) {
+        init.headers['Content-Type'] = 'application/json';
+        init.body = JSON.stringify(endpoint.body);
+      }
+
+      const startedAt = performance.now();
+
+      try {
+        const response = await fetch(url, init);
+        const duration = Math.round(performance.now() - startedAt);
+        const text = await response.text();
+        let parsed = null;
+
+        if (text) {
+          try {
+            parsed = JSON.parse(text);
+          } catch (_error) {
+            parsed = text;
+          }
+        }
+
+        const headersObject = Object.fromEntries(response.headers.entries());
+        const payload = {
+          status: response.status,
+          statusText: response.statusText,
+          durationMs: duration,
+          headers: headersObject,
+          body: parsed
+        };
+
+        console.log('⬅️ Réponse reçue', payload);
+
+        const statusLine = `${response.status} ${response.statusText || ''} · ${duration} ms`;
+        displayResponse(statusLine.trim(), payload.body, response.status >= 400);
+      } catch (error) {
+        const duration = Math.round(performance.now() - startedAt);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('❌ Erreur réseau', error);
+        displayResponse(`Erreur réseau · ${duration} ms`, message, true);
+      }
+    };
+
+    baseUrlInput.value = window.location.origin;
+    renderPresets();
   </script>
 </body>
 </html>
