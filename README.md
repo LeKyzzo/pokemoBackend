@@ -1,13 +1,3 @@
-# Mon backend Pokémon
-
-Je me suis monté une petite API REST en Express + TypeScript pour jouer avec des dresseurs, des attaques et des combats Pokémon. Tout est branché sur PostgreSQL et livré avec quelques scripts SQL pour démarrer la base.
-
-## Prérequis
-
-- Node.js 18+ (testé en LTS)
-- npm (fourni avec Node)
-- PostgreSQL en local
-
 ## Installation rapide
 
 ```bash
