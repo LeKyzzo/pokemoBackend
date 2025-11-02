@@ -251,7 +251,7 @@ export default class BattleServices {
 		const loserTrainer = loserPokemon === pokemonA ? trainerA : loserPokemon === pokemonB ? trainerB : null;
 
 		if (reason !== 'knockout' && !winnerTrainer) {
-			consecutiveSkips = 2; // force draw state
+			consecutiveSkips = 2; // je force l'égalité si personne n'a réussi un K.O.
 		}
 
 		return {

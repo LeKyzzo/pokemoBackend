@@ -60,11 +60,8 @@ export default class Pokemon {
         this.attacks.push(attack.clone());
     }
 
-    /**
-     * Méthode utilisée lors du chargement depuis la base de données.
-     * Elle remplace une attaque existante portant le même identifiant
-     * afin de refléter le compteur d'usage stocké.
-     */
+    // Quand on recharge un Pokémon depuis la base, on réinjecte l'attaque
+    // pour récupérer les compteurs d'usage déjà enregistrés.
     addOrReplaceAttack(attack: Attack): void {
         const clone = attack.clone();
         const index = this.attacks.findIndex(
@@ -75,7 +72,7 @@ export default class Pokemon {
             return;
         }
         if (this.attacks.length >= 4) {
-            // La base de données applique déjà la contrainte, donc on remplace le plus ancien.
+            // La contrainte existe déjà côté SQL, ici je vire juste la plus vieille attaque.
             this.attacks.shift();
         }
         this.attacks.push(clone);
